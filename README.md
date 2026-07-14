@@ -504,9 +504,9 @@ cd C:\Users\musta\universal-document-crawler
 
 ## Cloud deployment
 
-For the GitHub + Render backend + Vercel frontend deployment workflow, including persistent storage, environment variables, CORS, cost boundaries, and post-deploy verification, see [DEPLOYMENT.md](DEPLOYMENT.md).
+For the no-cost GitHub + Render backend + Vercel frontend workflow, including environment variables, CORS, platform limits, and post-deploy verification, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-The production Render Blueprint uses Docker because Chromium requires browser system dependencies. It also uses a paid persistent disk so SQLite metadata and downloaded documents survive restarts and deploys.
+The committed Render Blueprint uses Docker because Chromium requires browser system dependencies and selects Render's Free service plan. Free storage is temporary: SQLite metadata, jobs, settings, logs, and downloaded files can disappear whenever the backend spins down, restarts, or redeploys. Use it only for demos and small tests; durable production deployment requires paid persistent storage or managed database/object storage.
 
 ## API surface
 

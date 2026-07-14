@@ -1,22 +1,23 @@
-# Deployment guide: GitHub, Render, and Vercel
+# Free deployment guide: GitHub, Render, and Vercel
 
 This repository deploys as two services:
 
 - `backend/` and `crawler/`: Docker web service on Render
 - `frontend/`: Next.js application on Vercel
 
-## Before deploying
+## What the free profile provides
 
-The current cloud profile is a single-instance application. Render must keep one instance because SQLite and downloaded files live on one attached persistent disk.
+The committed `render.yaml` is configured for a no-cost demo deployment:
 
-The committed `render.yaml` uses:
-
-- Render Starter web service
-- One 10 GB persistent disk mounted at `/app/data`
+- Render Free web service
+- Vercel Hobby frontend
 - Docker with the Playwright Chromium runtime
 - Health check at `/api/v1/health`
+- One small crawler job at a time
 
-This is a paid Render configuration. The free Render plan has an ephemeral filesystem and is not appropriate when jobs, metadata, or downloads must survive restarts.
+This is appropriate for personal testing and demonstrations, not production use. Vercel's free Hobby plan is for personal, non-commercial projects. Render Free currently provides limited CPU and 512 MB RAM, spins down after 15 minutes without traffic, and can take about a minute to wake. Its filesystem is ephemeral, so jobs, projects, settings, SQLite metadata, logs, and downloaded files can be erased when the service spins down, restarts, or redeploys.
+
+Use conservative crawl limits on this profile: depth 0 or 1, 5-20 pages, 1-10 files, JavaScript off when the target works without it, and only one running job. Chromium can exceed the free instance's memory on large or JavaScript-heavy sites.
 
 ## 1. Push to GitHub
 
@@ -33,9 +34,9 @@ Never commit `frontend/.env.local`, database files, downloads, logs, or credenti
 1. Sign in to Render and connect the GitHub account that owns this repository.
 2. Choose **New > Blueprint**.
 3. Select `mustafa-mmd/universal-document-crawler` and the `main` branch.
-4. Render detects `render.yaml` at the repository root.
+4. Leave **Blueprint Path** blank, or enter `render.yaml`. The file is at the repository root.
 5. When prompted for `UDC_ALLOWED_ORIGINS`, enter a temporary expected Vercel URL, for example `https://universal-document-crawler.vercel.app`.
-6. Review the paid Starter service and 10 GB disk, then apply the Blueprint.
+6. Confirm the service plan says **Free** and that no persistent disk is listed, then apply the Blueprint.
 7. Wait for the Docker build and health check to finish.
 8. Copy the Render service URL, for example:
 
@@ -55,7 +56,7 @@ https://YOUR-RENDER-SERVICE.onrender.com/api/v1/health
 2. Import the same GitHub repository.
 3. Set **Root Directory** to `frontend`.
 4. Confirm Framework Preset is **Next.js**.
-5. Add this environment variable for Production, Preview, and Development:
+5. Add this environment variable for Production, Preview, and Development (use the exact Render URL from the previous step):
 
 ```text
 NEXT_PUBLIC_API_URL=https://YOUR-RENDER-SERVICE.onrender.com/api/v1
@@ -76,7 +77,7 @@ UDC_ALLOWED_ORIGINS=https://YOUR-FINAL-VERCEL-DOMAIN.vercel.app
 
 For multiple exact domains, use a comma-separated list. Do not use `*`.
 
-Save and deploy the service. Then open the Vercel frontend and confirm the bottom-left indicator says the API is connected.
+Save the variable and redeploy the Render service. Then open the Vercel frontend and confirm the bottom-left indicator says the API is connected. The first request after an idle period can take about a minute while Render wakes the service.
 
 ## 5. Post-deployment verification
 
@@ -85,12 +86,18 @@ Save and deploy the service. Then open the Vercel frontend and confirm the botto
 3. Run a very small crawl: depth 0, one page, one file.
 4. Confirm the job status updates.
 5. Confirm a downloaded document appears in Documents.
-6. Redeploy the Render service and verify the job/document metadata still exists on the persistent disk.
+6. Refresh the frontend and verify the normal dashboard, Jobs, and Documents requests succeed.
+
+Do not use persistence across restarts as a test on the free profile: local state is expected to disappear.
 
 ## Operational boundaries
 
 - The backend API is publicly reachable. CORS limits browser origins but is not authentication.
 - Do not market this deployment as a public multi-user SaaS until authentication, authorization, per-user quotas, rate limiting, and audit logging are added.
-- Keep one Render instance while using SQLite and a persistent disk.
-- Render disk-backed deploys have brief downtime because the disk can attach to only one service instance.
-- Review bandwidth and disk usage regularly; downloaded documents can grow quickly.
+- The free backend is a temporary demo environment. Never rely on it as the only copy of a downloaded document.
+- Keep crawls small. The free service has limited CPU/RAM and may stop a memory-heavy Chromium crawl.
+- Render and Vercel usage limits can change. Review both dashboards before enabling public traffic.
+
+## Upgrade path for durable production storage
+
+For a real deployment, change `plan: free` in `render.yaml` to a paid Render instance and attach a persistent disk at `/app/data`, or move metadata to a managed database and documents to object storage. Add authentication, authorization, quotas, rate limiting, backups, and monitoring before serving multiple users.
