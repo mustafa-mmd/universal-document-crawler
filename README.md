@@ -104,6 +104,7 @@ Only the formats selected in the crawl form are accepted for that job.
 - Search by filename, URL, or local path
 - View file type, size, source URL, download time, and content hash
 - Download an existing local file through the API
+- Download all available documents (or current search results) as one ZIP with a metadata manifest
 - Rename a local file while preserving its extension and metadata link
 - Delete a file and its metadata after explicit confirmation
 - Clear the entire application library without deleting any files from PC folders
@@ -516,6 +517,7 @@ The committed Render Blueprint uses Docker because Chromium requires browser sys
 - `GET|DELETE /api/v1/jobs/{id}`
 - `POST /api/v1/jobs/{id}/actions`
 - `GET /api/v1/documents`
+- `GET /api/v1/documents/archive` (downloads available files as one ZIP)
 - `DELETE /api/v1/documents` (clears library metadata; preserves local files)
 - `PATCH|DELETE /api/v1/documents/{id}`
 - `GET /api/v1/documents/{id}/download`

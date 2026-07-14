@@ -45,6 +45,8 @@ export const api = {
   deleteJob: (id: string) => request<void>(`/jobs/${id}`, { method: "DELETE" }),
   documents: (search = "") =>
     request<DocumentItem[]>(`/documents?search=${encodeURIComponent(search)}`),
+  documentArchiveUrl: (search = "") =>
+    `${API_BASE}/documents/archive?search=${encodeURIComponent(search)}`,
   renameDocument: (id: string, name: string) =>
     request<DocumentItem>(`/documents/${id}`, {
       method: "PATCH",

@@ -96,6 +96,7 @@ Do not use persistence across restarts as a test on the free profile: local stat
 - Do not market this deployment as a public multi-user SaaS until authentication, authorization, per-user quotas, rate limiting, and audit logging are added.
 - The free backend is a temporary demo environment. Never rely on it as the only copy of a downloaded document.
 - Keep crawls small. The free service has limited CPU/RAM and may stop a memory-heavy Chromium crawl.
+- Download all creates a temporary disk-backed ZIP to keep RAM usage low. Keep free-tier libraries small; large production exports should be generated from durable object storage.
 - Render and Vercel usage limits can change. Review both dashboards before enabling public traffic.
 
 ## Upgrade path for durable production storage

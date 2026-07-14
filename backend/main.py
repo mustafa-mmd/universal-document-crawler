@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
+from backend.document_archive import create_document_archive
 from backend.job_manager import JobManager
 from backend.repository import ApplicationRepository
 from backend.schemas import (
@@ -100,6 +103,26 @@ def create_app(repository: ApplicationRepository | None = None) -> FastAPI:
             "cleared": repo.clear_document_records(),
             "local_files_deleted": False,
         }
+
+    @app.get("/api/v1/documents/archive")
+    def download_document_archive(search: str = "") -> FileResponse:
+        try:
+            archive_path, document_count = create_document_archive(
+                repo.list_documents(search=search, limit=100_000)
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        filename = f"udc-documents-{datetime.now(UTC):%Y%m%d-%H%M%S}.zip"
+        return FileResponse(
+            archive_path,
+            filename=filename,
+            media_type="application/zip",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Document-Count": str(document_count),
+            },
+            background=BackgroundTask(archive_path.unlink, missing_ok=True),
+        )
 
     @app.get("/api/v1/documents/{document_id}/download")
     def download_document(document_id: str) -> FileResponse:

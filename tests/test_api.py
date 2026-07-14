@@ -1,5 +1,8 @@
-from fastapi.testclient import TestClient
+from io import BytesIO
 import sqlite3
+from zipfile import ZipFile
+
+from fastapi.testclient import TestClient
 
 from backend.main import create_app
 from backend.job_manager import JobManager
@@ -200,3 +203,58 @@ def test_clear_document_library_preserves_local_files(tmp_path):
     assert response.json() == {"cleared": 1, "local_files_deleted": False}
     assert local_file.is_file()
     assert repository.list_documents() == []
+
+
+def test_document_archive_downloads_available_files_with_unique_names(tmp_path):
+    crawler_path = tmp_path / "crawler.db"
+    first_folder = tmp_path / "first"
+    second_folder = tmp_path / "second"
+    first_folder.mkdir()
+    second_folder.mkdir()
+    first_file = first_folder / "report.pdf"
+    second_file = second_folder / "report.pdf"
+    first_file.write_bytes(b"first report")
+    second_file.write_bytes(b"second report")
+    with sqlite3.connect(crawler_path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE downloaded_files (
+                url TEXT PRIMARY KEY, local_path TEXT, size INTEGER,
+                sha256 TEXT, final_url TEXT, mime_type TEXT,
+                downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        connection.executemany(
+            """
+            INSERT INTO downloaded_files(url, local_path, size, sha256, mime_type)
+            VALUES(?, ?, ?, ?, ?)
+            """,
+            [
+                ("https://example.com/first.pdf", str(first_file), 12, "first-hash", "application/pdf"),
+                ("https://example.com/second.pdf", str(second_file), 13, "second-hash", "application/pdf"),
+                ("https://example.com/missing.pdf", str(tmp_path / "missing.pdf"), 10, "missing-hash", "application/pdf"),
+            ],
+        )
+
+    repository = ApplicationRepository(tmp_path / "application.db", crawler_path)
+    with TestClient(create_app(repository)) as client:
+        response = client.get("/api/v1/documents/archive")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert response.headers["x-document-count"] == "2"
+    assert "udc-documents-" in response.headers["content-disposition"]
+    with ZipFile(BytesIO(response.content)) as archive:
+        assert set(archive.namelist()) == {"report.pdf", "report (2).pdf", "manifest.json"}
+        assert archive.read("report.pdf") == b"first report"
+        assert archive.read("report (2).pdf") == b"second report"
+        assert b'"document_count": 2' in archive.read("manifest.json")
+
+
+def test_document_archive_returns_not_found_when_files_are_unavailable(tmp_path):
+    repository = ApplicationRepository(tmp_path / "application.db", tmp_path / "crawler.db")
+    with TestClient(create_app(repository)) as client:
+        response = client.get("/api/v1/documents/archive")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "No downloaded files are available"

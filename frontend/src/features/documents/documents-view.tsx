@@ -42,6 +42,8 @@ export function DocumentsView() {
     },
   });
   const error = query.error ?? rename.error ?? remove.error ?? clear.error;
+  const hasDownloadableDocuments = query.data?.some((document) => document.exists) ?? false;
+  const archiveLabel = deferred.trim() ? "Download results" : "Download all";
 
   function beginRename(document: DocumentItem) {
     setEditing(document);
@@ -54,8 +56,8 @@ export function DocumentsView() {
       <PageHeading
         eyebrow="Document explorer"
         title="Your document library"
-        description="Search downloaded files, open their sources, rename local copies, or remove files and metadata safely."
-        action={<div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row"><div className="relative sm:w-72"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label="Search documents" value={search} onChange={(event) => setSearch(event.target.value)} className="pl-9" placeholder="Search names or URLs…" /></div>{confirmClear ? <div className="flex gap-2"><Button variant="destructive" onClick={() => clear.mutate()} disabled={clear.isPending}>{clear.isPending && <Loader2 className="size-4 animate-spin" />} Confirm clear</Button><Button variant="ghost" onClick={() => setConfirmClear(false)}>Cancel</Button></div> : <Button variant="outline" onClick={() => setConfirmClear(true)} disabled={!query.data?.length}><Trash2 className="size-4" /> Clear library</Button>}</div>}
+        description="Search downloaded files, download one document or a complete ZIP, rename local copies, and safely manage library records."
+        action={<div className="flex w-full flex-col gap-2 sm:w-auto xl:flex-row"><div className="relative sm:w-72"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label="Search documents" value={search} onChange={(event) => setSearch(event.target.value)} className="pl-9" placeholder="Search names or URLs…" /></div><div className="flex flex-wrap gap-2">{hasDownloadableDocuments ? <a href={api.documentArchiveUrl(deferred)} className={buttonVariants()} title={deferred.trim() ? "Download all files matching the current search as one ZIP" : "Download every available document as one ZIP"}><Download className="size-4" /> {archiveLabel}</a> : <Button disabled><Download className="size-4" /> {archiveLabel}</Button>}{confirmClear ? <><Button variant="destructive" onClick={() => clear.mutate()} disabled={clear.isPending}>{clear.isPending && <Loader2 className="size-4 animate-spin" />} Confirm clear</Button><Button variant="ghost" onClick={() => setConfirmClear(false)}>Cancel</Button></> : <Button variant="outline" onClick={() => setConfirmClear(true)} disabled={!query.data?.length}><Trash2 className="size-4" /> Clear library</Button>}</div></div>}
       />
       {error && <div className="mb-5"><ApiErrorState message={(error as Error).message} /></div>}
       {confirmClear && <div className="mb-5 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-4 text-sm leading-6 text-muted-foreground"><strong className="text-foreground">This only clears the application library.</strong> All original files will remain untouched in their PC folders. A later crawl may add existing files back to this list.</div>}
