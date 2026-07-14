@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-*/
+.env
+database/*
+!database/.gitkeep
+logs/*.log
+logs/*.png
+downloads/*
+!downloads/.gitkeep
+frontend/node_modules/
+frontend/.next/
+frontend/.env*.local
+frontend/.vercel/
+.vercel/

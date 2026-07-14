@@ -1,7 +1,10 @@
-playwright
-beautifulsoup4
-lxml
-httpx
-aiofiles
-rich
-tldextract
+playwright==1.61.0
+beautifulsoup4>=4.13,<5
+lxml>=5.4,<7
+httpx>=0.28,<1
+aiofiles>=24.1,<26
+rich>=14,<15
+tldextract>=5.3,<6
+pytest>=8.4,<10
+fastapi>=0.116,<1
+uvicorn[standard]>=0.35,<1

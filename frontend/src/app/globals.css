@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.985 0.004 260);
+  --foreground: oklch(0.19 0.025 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.025 260);
+  --primary: oklch(0.58 0.19 258);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.01 260);
+  --secondary-foreground: oklch(0.28 0.03 260);
+  --muted: oklch(0.96 0.008 260);
+  --muted-foreground: oklch(0.53 0.025 260);
+  --accent: oklch(0.94 0.018 258);
+  --accent-foreground: oklch(0.28 0.04 258);
+  --destructive: oklch(0.62 0.22 25);
+  --border: oklch(0.9 0.012 260);
+  --input: oklch(0.88 0.014 260);
+  --ring: oklch(0.58 0.19 258);
+  --radius: 0.7rem;
+}
+
+.dark {
+  --background: oklch(0.145 0.018 260);
+  --foreground: oklch(0.96 0.008 260);
+  --card: oklch(0.185 0.022 260);
+  --card-foreground: oklch(0.96 0.008 260);
+  --primary: oklch(0.69 0.17 255);
+  --primary-foreground: oklch(0.14 0.02 260);
+  --secondary: oklch(0.235 0.024 260);
+  --secondary-foreground: oklch(0.92 0.01 260);
+  --muted: oklch(0.22 0.021 260);
+  --muted-foreground: oklch(0.67 0.025 260);
+  --accent: oklch(0.255 0.04 258);
+  --accent-foreground: oklch(0.95 0.01 260);
+  --destructive: oklch(0.65 0.2 25);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.69 0.17 255);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: calc(var(--radius) * 0.875);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+}
+
+* { border-color: var(--border); }
+body { background: var(--background); color: var(--foreground); }
+::selection { background: color-mix(in oklab, var(--primary) 28%, transparent); }
+
+.grid-fade {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
